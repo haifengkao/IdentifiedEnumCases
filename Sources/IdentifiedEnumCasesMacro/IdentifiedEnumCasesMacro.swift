@@ -6,6 +6,74 @@ import SwiftDiagnostics
 import Foundation
 
 public struct IdentifiedEnumCasesMacro: MemberMacro {
+  struct CaseStyleTransformer {
+    let memberName: String
+
+    func transform(_ caseName: String) -> String {
+      switch memberName {
+      case "verbatim":
+        return caseName
+      case "camelCase":
+        return CaseConverter.format(caseName, to: .camelCase)
+      case "pascalCase":
+        return CaseConverter.format(caseName, to: .pascalCase)
+      case "snakeCase":
+        return CaseConverter.format(caseName, to: .snakeCase)
+      case "screamingSnakeCase":
+        return CaseConverter.format(caseName, to: .screamingSnakeCase)
+      case "kebabCase":
+        return CaseConverter.format(caseName, to: .kebabCase)
+      default:
+        return caseName
+      }
+    }
+  }
+
+  struct CaseConverter {
+    static func tokenize(_ input: String) -> [String] {
+      let splitCamel = input.replacingOccurrences(
+        of: "([a-z])([A-Z])",
+        with: "$1 $2",
+        options: .regularExpression
+      )
+
+      let separators = CharacterSet.alphanumerics.inverted
+      let components = splitCamel.components(separatedBy: separators)
+
+      return components
+        .filter { !$0.isEmpty }
+        .map { $0.lowercased() }
+    }
+
+    static func format(_ string: String, to style: Style) -> String {
+      let tokens = tokenize(string)
+      guard !tokens.isEmpty else { return string }
+
+      switch style {
+      case .camelCase:
+        let first = tokens[0]
+        let rest = tokens.dropFirst().map(\.capitalized)
+        return first + rest.joined()
+      case .pascalCase:
+        return tokens.map(\.capitalized).joined()
+      case .snakeCase:
+        return tokens.joined(separator: "_")
+      case .screamingSnakeCase:
+        return tokens.joined(separator: "_").uppercased()
+      case .kebabCase:
+        return tokens.joined(separator: "-")
+      }
+    }
+  }
+
+  enum Style {
+    case camelCase
+    case pascalCase
+    case snakeCase
+    case screamingSnakeCase
+    case kebabCase
+  }
+
   public static func expansion<Declaration, Context>(
     of node: SwiftSyntax.AttributeSyntax,
     providingMembersOf declaration: Declaration,
@@ -17,30 +85,10 @@ public struct IdentifiedEnumCasesMacro: MemberMacro {
         return []
       }
       
-      guard let enumCases: [SyntaxProtocol] = declaration.memberBlock
-        .children(viewMode: .fixedUp).filter({ $0.kind == .memberDeclList })
-        .first?
-        .children(viewMode: .fixedUp).filter({ $0.kind == SyntaxKind.memberDeclListItem })
-        .flatMap({ $0.children(viewMode: .fixedUp).filter({ $0.kind == .enumCaseDecl })})
-        .flatMap({ $0.children(viewMode: .fixedUp).filter({ $0.kind == .enumCaseElementList })})
-        .flatMap({ $0.children(viewMode: .fixedUp).filter({ $0.kind == .enumCaseElement })})
-      else {
-        let enumError = Diagnostic(node: node._syntaxNode, message: Diagnostics.mustHaveCases)
-        context.diagnose(enumError)
-        return []
-      }
-
-      let caseIds: [String] = enumCases.compactMap { enumCase in
-        guard let firstToken = enumCase.firstToken(viewMode: .fixedUp) else {
-          return nil
-        }
-
-        guard case let .identifier(id) = firstToken.tokenKind else {
-          return nil
-        }
-
-        return id
-      }
+      let caseIds = declaration.memberBlock.members
+        .compactMap { $0.decl.as(EnumCaseDeclSyntax.self) }
+        .flatMap(\.elements)
+        .map(\.name.text)
       
       guard !caseIds.isEmpty else {
         let enumError = Diagnostic(node: node._syntaxNode, message: Diagnostics.mustHaveCases)
@@ -48,8 +96,16 @@ public struct IdentifiedEnumCasesMacro: MemberMacro {
         return []
       }
 
+      let caseStyle = parseCaseStyle(from: node)
       let modifier = declaration.hasPublicModifier ? "public " : ""
-      let enumID = "\(modifier)enum CaseID: String, Hashable, CaseIterable, CustomStringConvertible {\n\(caseIds.map { "  case \($0)\n" }.joined())\n  \(modifier)var description: String {\nself.rawValue\n  }\n}"
+      let enumID = """
+      \(modifier)enum CaseID: String, Hashable, CaseIterable, CustomStringConvertible {
+      \(caseIds.map { caseDeclaration(for: $0, using: caseStyle) }.joined())
+        \(modifier)var description: String {
+          self.rawValue
+        }
+      }
+      """
       let idAccessor = "\(modifier)var caseID: CaseID {\n  switch self {\n\(caseIds.map { "  case .\($0): .\($0)\n" }.joined())  }\n}"
 
       return [
@@ -57,6 +113,27 @@ public struct IdentifiedEnumCasesMacro: MemberMacro {
         DeclSyntax(stringLiteral: idAccessor)
       ]
     }
+
+  static func parseCaseStyle(from node: AttributeSyntax) -> CaseStyleTransformer {
+    guard case let .argumentList(arguments) = node.arguments,
+          let caseStyleArgument = arguments.first(where: { $0.label?.text == "caseStyle" }),
+          let member = caseStyleArgument.expression.as(MemberAccessExprSyntax.self)
+    else {
+      return CaseStyleTransformer(memberName: "verbatim")
+    }
+
+    return CaseStyleTransformer(memberName: member.declName.baseName.text)
+  }
+
+  static func caseDeclaration(for caseID: String, using transformer: CaseStyleTransformer) -> String {
+    let rawValue = transformer.transform(caseID)
+
+    if rawValue == caseID {
+      return "  case \(caseID)\n"
+    }
+
+    return "  case \(caseID) = \"\(rawValue)\"\n"
+  }
   
   public enum Diagnostics: String, DiagnosticMessage {
     
