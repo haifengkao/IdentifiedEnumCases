@@ -1,14 +1,15 @@
 import XCTest
+import IdentifiedEnumCases
 import IdentifiedEnumCasesMacro
 import SwiftSyntaxMacros
 import SwiftSyntaxMacrosTestSupport
 import SwiftDiagnostics
 
-let testMacros: [String: Macro.Type] = [
-  "IdentifiedEnumCases": IdentifiedEnumCasesMacro.self,
-]
-
 final class MacroTests: XCTestCase {
+  private let testMacros: [String: Macro.Type] = [
+    "IdentifiedEnumCases": IdentifiedEnumCasesMacro.self,
+  ]
+
   func testMacro() {
     
     assertMacroExpansion(
@@ -110,6 +111,270 @@ final class MacroTests: XCTestCase {
           macros: testMacros,
           indentationWidth: .spaces(2)
     )
+  }
+
+  func testScreamingSnakeCaseMacro() {
+    assertMacroExpansion(
+          """
+          @IdentifiedEnumCases(caseStyle: .screamingSnakeCase)
+          enum ExampleCase {
+            case sampleEntry
+            case extraValue(query: String)
+          }
+          """,
+          expandedSource:
+          """
+
+          enum ExampleCase {
+            case sampleEntry
+            case extraValue(query: String)
+
+            enum CaseID: String, Hashable, CaseIterable, CustomStringConvertible {
+              case sampleEntry = "SAMPLE_ENTRY"
+              case extraValue = "EXTRA_VALUE"
+
+              var description: String {
+                self.rawValue
+              }
+            }
+
+            var caseID: CaseID {
+              switch self {
+              case .sampleEntry:
+                .sampleEntry
+              case .extraValue:
+                .extraValue
+              }
+            }
+          }
+          """,
+          macros: testMacros,
+          indentationWidth: .spaces(2)
+    )
+  }
+
+  func testSnakeCaseMacro() {
+    assertMacroExpansion(
+          """
+          @IdentifiedEnumCases(caseStyle: .snakeCase)
+          enum Command {
+            case sendMessage(text: String)
+          }
+          """,
+          expandedSource:
+          """
+
+          enum Command {
+            case sendMessage(text: String)
+
+            enum CaseID: String, Hashable, CaseIterable, CustomStringConvertible {
+              case sendMessage = "send_message"
+
+              var description: String {
+                self.rawValue
+              }
+            }
+
+            var caseID: CaseID {
+              switch self {
+              case .sendMessage:
+                .sendMessage
+              }
+            }
+          }
+          """,
+          macros: testMacros,
+          indentationWidth: .spaces(2)
+    )
+  }
+
+  func testVerbatimMacro() {
+    assertMacroExpansion(
+          """
+          @IdentifiedEnumCases(caseStyle: .verbatim)
+          enum Command {
+            case sample_entry
+          }
+          """,
+          expandedSource:
+          """
+
+          enum Command {
+            case sample_entry
+
+            enum CaseID: String, Hashable, CaseIterable, CustomStringConvertible {
+              case sample_entry
+
+              var description: String {
+                self.rawValue
+              }
+            }
+
+            var caseID: CaseID {
+              switch self {
+              case .sample_entry:
+                .sample_entry
+              }
+            }
+          }
+          """,
+          macros: testMacros,
+          indentationWidth: .spaces(2)
+    )
+  }
+
+  func testDefaultVerbatimMacro() {
+    assertMacroExpansion(
+          """
+          @IdentifiedEnumCases
+          enum Command {
+            case sample_entry
+          }
+          """,
+          expandedSource:
+          """
+
+          enum Command {
+            case sample_entry
+
+            enum CaseID: String, Hashable, CaseIterable, CustomStringConvertible {
+              case sample_entry
+
+              var description: String {
+                self.rawValue
+              }
+            }
+
+            var caseID: CaseID {
+              switch self {
+              case .sample_entry:
+                .sample_entry
+              }
+            }
+          }
+          """,
+          macros: testMacros,
+          indentationWidth: .spaces(2)
+    )
+  }
+
+  func testCamelCaseMacro() {
+    assertMacroExpansion(
+          """
+          @IdentifiedEnumCases(caseStyle: .camelCase)
+          enum Command {
+            case sample_entry
+          }
+          """,
+          expandedSource:
+          """
+
+          enum Command {
+            case sample_entry
+
+            enum CaseID: String, Hashable, CaseIterable, CustomStringConvertible {
+              case sample_entry = "sampleEntry"
+
+              var description: String {
+                self.rawValue
+              }
+            }
+
+            var caseID: CaseID {
+              switch self {
+              case .sample_entry:
+                .sample_entry
+              }
+            }
+          }
+          """,
+          macros: testMacros,
+          indentationWidth: .spaces(2)
+    )
+  }
+
+  func testPascalCaseMacro() {
+    assertMacroExpansion(
+          """
+          @IdentifiedEnumCases(caseStyle: .pascalCase)
+          enum Command {
+            case sample_entry
+          }
+          """,
+          expandedSource:
+          """
+
+          enum Command {
+            case sample_entry
+
+            enum CaseID: String, Hashable, CaseIterable, CustomStringConvertible {
+              case sample_entry = "SampleEntry"
+
+              var description: String {
+                self.rawValue
+              }
+            }
+
+            var caseID: CaseID {
+              switch self {
+              case .sample_entry:
+                .sample_entry
+              }
+            }
+          }
+          """,
+          macros: testMacros,
+          indentationWidth: .spaces(2)
+    )
+  }
+
+  func testKebabCaseMacro() {
+    assertMacroExpansion(
+          """
+          @IdentifiedEnumCases(caseStyle: .kebabCase)
+          enum Command {
+            case sample_entry
+          }
+          """,
+          expandedSource:
+          """
+
+          enum Command {
+            case sample_entry
+
+            enum CaseID: String, Hashable, CaseIterable, CustomStringConvertible {
+              case sample_entry = "sample-entry"
+
+              var description: String {
+                self.rawValue
+              }
+            }
+
+            var caseID: CaseID {
+              switch self {
+              case .sample_entry:
+                .sample_entry
+              }
+            }
+          }
+          """,
+          macros: testMacros,
+          indentationWidth: .spaces(2)
+    )
+  }
+
+  func testCaseConverter() {
+    XCTAssertEqual(CaseConverter.format("sample_entry", to: .verbatim), "sample_entry")
+    XCTAssertEqual(CaseConverter.tokenize("sampleEntry"), ["sample", "entry"])
+    XCTAssertEqual(CaseConverter.tokenize("SampleEntry"), ["sample", "entry"])
+    XCTAssertEqual(CaseConverter.tokenize("sample_entry"), ["sample", "entry"])
+    XCTAssertEqual(CaseConverter.tokenize("sample-entry"), ["sample", "entry"])
+
+    XCTAssertEqual(CaseConverter.format("sample_entry", to: .camelCase), "sampleEntry")
+    XCTAssertEqual(CaseConverter.format("sample_entry", to: .pascalCase), "SampleEntry")
+    XCTAssertEqual(CaseConverter.format("sampleEntry", to: .snakeCase), "sample_entry")
+    XCTAssertEqual(CaseConverter.format("sampleEntry", to: .screamingSnakeCase), "SAMPLE_ENTRY")
+    XCTAssertEqual(CaseConverter.format("sampleEntry", to: .kebabCase), "sample-entry")
   }
     
   func testMustBeEnumDiagnostic() {

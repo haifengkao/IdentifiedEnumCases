@@ -28,6 +28,18 @@
 ///
 /// If the enum is `public`, the generated `ID` enum and the
 /// generated `id` accessor will also be `public`
-/// 
+///
+/// The generated `CaseID` raw values can also be transformed to a
+/// serialized form:
+///
+///     @IdentifiedEnumCases(caseStyle: .screamingSnakeCase)
+///     enum ExampleCase {
+///       case sampleEntry
+///       case extraValue(query: String)
+///     }
+///
+/// generates `CaseID.sampleEntry.rawValue == "SAMPLE_ENTRY"`
+/// and `CaseID.extraValue.rawValue == "EXTRA_VALUE"`.
+
 @attached(member, names: named(CaseID), named(caseID))
-public macro IdentifiedEnumCases() = #externalMacro(module: "IdentifiedEnumCasesMacro", type: "IdentifiedEnumCasesMacro")
+public macro IdentifiedEnumCases(caseStyle: CaseStyle = .verbatim) = #externalMacro(module: "IdentifiedEnumCasesMacro", type: "IdentifiedEnumCasesMacro")

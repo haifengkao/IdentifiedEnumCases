@@ -103,6 +103,39 @@ public enum AppRoute {
 }
 ```
 
+## Case Style
+
+`CaseID.rawValue` defaults to preserving the original case name.
+For the normalized styles, the case name is tokenized and rebuilt, so
+`sampleEntry`, `SampleEntry`, `sample_entry`, and `sample-entry` normalize consistently.
+
+By default, `@IdentifiedEnumCases` uses `.verbatim`. You can opt into a
+different raw-value style with `caseStyle:`:
+
+```swift
+import IdentifiedEnumCases
+
+@IdentifiedEnumCases(caseStyle: .screamingSnakeCase)
+enum ExampleCase {
+  case sampleEntry
+  case extraValue(query: String)
+}
+
+ExampleCase.CaseID.sampleEntry.rawValue // "SAMPLE_ENTRY"
+ExampleCase.CaseID.extraValue.rawValue  // "EXTRA_VALUE"
+```
+
+Supported styles:
+
+| Style | Swift case | `CaseID.rawValue` |
+|---|---|---|
+| `.verbatim` *(default)* | `sample_entry` | `"sample_entry"` |
+| `.camelCase` | `sample_entry` | `"sampleEntry"` |
+| `.pascalCase` | `sample_entry` | `"SampleEntry"` |
+| `.snakeCase` | `sampleEntry` | `"sample_entry"` |
+| `.screamingSnakeCase` | `sampleEntry` | `"SAMPLE_ENTRY"` |
+| `.kebabCase` | `sampleEntry` | `"sample-entry"` |
+
 ## Installation
 
 In `Package.swift`, add the package to your dependencies.
