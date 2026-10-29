@@ -136,6 +136,25 @@ Supported styles:
 | `.screamingSnakeCase` | `sampleEntry` | `"SAMPLE_ENTRY"` |
 | `.kebabCase` | `sampleEntry` | `"sample-entry"` |
 
+## Codable
+
+For enums without associated values, conform to `CaseIDCodable` to encode and
+decode the enum as its `CaseID.rawValue` string:
+
+```swift
+import IdentifiedEnumCases
+
+@IdentifiedEnumCases(caseStyle: .snakeCase)
+enum Status: CaseIDCodable {
+  case inProgress
+  case done
+}
+
+try JSONEncoder().encode(Status.inProgress) // "in_progress"
+```
+
+Decoding an unknown string throws `DecodingError.dataCorrupted`.
+
 ## Installation
 
 In `Package.swift`, add the package to your dependencies.
