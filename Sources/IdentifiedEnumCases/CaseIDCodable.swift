@@ -12,6 +12,9 @@
 ///     // Color.lightBlue encodes as "light_blue"
 ///
 /// Decoding an unknown string throws `DecodingError.dataCorrupted`.
+///
+/// Associated values are not encoded. `@IdentifiedEnumCases` rejects an enum that declares both; use
+/// MacroCodableKit's `@TaggedCodable` for those enums.
 public protocol CaseIDCodable: Codable, CaseIterable {
   associatedtype CaseID: RawRepresentable where CaseID.RawValue == String
 

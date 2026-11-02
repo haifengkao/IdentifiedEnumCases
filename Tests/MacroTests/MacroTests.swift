@@ -153,6 +153,29 @@ final class MacroTests: XCTestCase {
     )
   }
 
+  func testCaseIDCodableRejectsAssociatedValues() {
+    assertMacroExpansion(
+          """
+          @IdentifiedEnumCases
+          enum Shape: CaseIDCodable {
+            case point
+            case circle(radius: Double)
+          }
+          """,
+          expandedSource:
+          """
+
+          enum Shape: CaseIDCodable {
+            case point
+            case circle(radius: Double)
+          }
+          """,
+          diagnostics: [DiagnosticSpec(message: "`CaseIDCodable` would lose associated values; use `@TaggedCodable` from MacroCodableKit instead", line: 1, column: 1)],
+          macros: testMacros,
+          indentationWidth: .spaces(2)
+    )
+  }
+
   func testSnakeCaseMacro() {
     assertMacroExpansion(
           """

@@ -96,6 +96,12 @@ public struct IdentifiedEnumCasesMacro: MemberMacro {
         return []
       }
 
+      if declaration.inheritsCaseIDCodable, declaration.hasAssociatedValues {
+        let codableError = Diagnostic(node: node._syntaxNode, message: Diagnostics.caseIDCodableWithAssociatedValues)
+        context.diagnose(codableError)
+        return []
+      }
+
       let caseStyle = parseCaseStyle(from: node)
       let modifier = declaration.hasPublicModifier ? "public " : ""
       let enumID = """
@@ -137,7 +143,7 @@ public struct IdentifiedEnumCasesMacro: MemberMacro {
   
   public enum Diagnostics: String, DiagnosticMessage {
     
-    case mustBeEnum, mustHaveCases
+    case mustBeEnum, mustHaveCases, caseIDCodableWithAssociatedValues
     
     public var message: String {
       switch self {
@@ -145,6 +151,8 @@ public struct IdentifiedEnumCasesMacro: MemberMacro {
         return "`@IdentifiedEnumCasesMacro` can only be applied to an `enum`"
       case .mustHaveCases:
         return "`@IdentifiedEnumCasesMacro` can only be applied to an `enum` with `case` statements"
+      case .caseIDCodableWithAssociatedValues:
+        return "`CaseIDCodable` would lose associated values; use `@TaggedCodable` from MacroCodableKit instead"
       }
     }
     
@@ -172,6 +180,21 @@ private extension DeclGroupSyntax {
           }
       }
       .contains(true)
+  }
+}
+
+private extension EnumDeclSyntax {
+  var inheritsCaseIDCodable: Bool {
+    inheritanceClause?.inheritedTypes.contains { inherited in
+      ["CaseIDCodable", "IdentifiedEnumCases.CaseIDCodable"].contains(inherited.type.trimmedDescription)
+    } ?? false
+  }
+
+  var hasAssociatedValues: Bool {
+    memberBlock.members
+      .compactMap { $0.decl.as(EnumCaseDeclSyntax.self) }
+      .flatMap(\.elements)
+      .contains { $0.parameterClause != nil }
   }
 }
 

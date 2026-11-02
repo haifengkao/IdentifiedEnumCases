@@ -155,6 +155,35 @@ try JSONEncoder().encode(Color.lightBlue) // "light_blue"
 
 Decoding an unknown string throws `DecodingError.dataCorrupted`.
 
+`CaseIDCodable` writes only the case name, so it does not support associated
+values: `@IdentifiedEnumCases` reports a compile error when the enum declares
+both. Don't work around it with `extension` or a handwritten `allCases`, because
+the values would be silently lost.
+
+To encode associated values, use
+[MacroCodableKit](https://github.com/haifengkao/MacroCodableKit). Both macros can
+be attached to the same enum. Keep the two `caseStyle` arguments the same if you
+want `CaseID.rawValue` to match the JSON tag:
+
+```swift
+import IdentifiedEnumCases
+import MacroCodableKit
+
+@IdentifiedEnumCases(caseStyle: .screamingSnakeCase)
+@TaggedCodable
+@CodedAt("type", caseStyle: .screamingSnakeCase)
+@ContentAt("params")
+enum Shape {
+  case point
+  case circle(radius: Double)
+}
+
+try JSONEncoder().encode(Shape.circle(radius: 2))
+// {"type":"CIRCLE","params":{"radius":2}}
+
+Shape.CaseID.circle.rawValue // "CIRCLE"
+```
+
 ## Installation
 
 In `Package.swift`, add the package to your dependencies.
