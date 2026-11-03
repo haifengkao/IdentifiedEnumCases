@@ -392,6 +392,9 @@ final class MacroTests: XCTestCase {
     XCTAssertEqual(CaseConverter.tokenize("SampleEntry"), ["sample", "entry"])
     XCTAssertEqual(CaseConverter.tokenize("sample_entry"), ["sample", "entry"])
     XCTAssertEqual(CaseConverter.tokenize("sample-entry"), ["sample", "entry"])
+    XCTAssertEqual(CaseConverter.tokenize("sampleSHA256Entry"), ["sample", "sha256", "entry"])
+    XCTAssertEqual(CaseConverter.tokenize("invalidJSONPayload"), ["invalid", "json", "payload"])
+    XCTAssertEqual(CaseConverter.tokenize("openViaURL"), ["open", "via", "url"])
 
     XCTAssertEqual(CaseConverter.format("sample_entry", to: .camelCase), "sampleEntry")
     XCTAssertEqual(CaseConverter.format("sample_entry", to: .pascalCase), "SampleEntry")

@@ -108,6 +108,10 @@ public enum AppRoute {
 `CaseID.rawValue` defaults to preserving the original case name.
 For the normalized styles, the case name is tokenized and rebuilt, so
 `sampleEntry`, `SampleEntry`, `sample_entry`, and `sample-entry` normalize consistently.
+A new word starts at a lowercase letter or digit followed by an uppercase letter,
+and at the last capital of an acronym followed by a lowercase letter:
+`sampleSHA256Entry` becomes `sample_sha256_entry`, `invalidJSONPayload` becomes `invalid_json_payload`.
+These are the same word boundaries MacroCodableKit uses for `caseStyle:`.
 
 By default, `@IdentifiedEnumCases` uses `.verbatim`. You can opt into a
 different raw-value style with `caseStyle:`:

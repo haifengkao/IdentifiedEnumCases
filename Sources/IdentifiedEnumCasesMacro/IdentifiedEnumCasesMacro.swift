@@ -31,8 +31,13 @@ public struct IdentifiedEnumCasesMacro: MemberMacro {
 
   struct CaseConverter {
     static func tokenize(_ input: String) -> [String] {
-      let splitCamel = input.replacingOccurrences(
-        of: "([a-z])([A-Z])",
+      let splitAcronyms = input.replacingOccurrences(
+        of: "([A-Z]+)([A-Z][a-z])",
+        with: "$1 $2",
+        options: .regularExpression
+      )
+      let splitCamel = splitAcronyms.replacingOccurrences(
+        of: "([a-z0-9])([A-Z])",
         with: "$1 $2",
         options: .regularExpression
       )
