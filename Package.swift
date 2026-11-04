@@ -24,10 +24,14 @@ let package = Package(
         .package(url: "https://github.com/swiftlang/swift-syntax.git", "600.0.0"..<"603.0.0"),
     ],
     targets: [
+        // The one CaseStyle / CaseConverter, shared by the macro and the library.
+        .target(name: "IdentifiedEnumCasesShared"),
+
         // Macro implementation that performs the source transformation of a macro.
         .macro(
             name: "IdentifiedEnumCasesMacro",
             dependencies: [
+                "IdentifiedEnumCasesShared",
                 .product(name: "SwiftSyntax", package: "swift-syntax"),
                 .product(name: "SwiftSyntaxBuilder", package: "swift-syntax"),
                 .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
@@ -37,7 +41,7 @@ let package = Package(
         ),
 
         // Library that exposes a macro as part of its API, which is used in client programs.
-        .target(name: "IdentifiedEnumCases", dependencies: ["IdentifiedEnumCasesMacro"]),
+        .target(name: "IdentifiedEnumCases", dependencies: ["IdentifiedEnumCasesShared", "IdentifiedEnumCasesMacro"]),
 
         // An example usage of the library, which is able to use the macro in its own code.
         .executableTarget(name: "URLsExample", dependencies: ["IdentifiedEnumCases"]),

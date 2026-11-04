@@ -4,79 +4,28 @@ import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 import SwiftDiagnostics
 import Foundation
+import IdentifiedEnumCasesShared
 
 public struct IdentifiedEnumCasesMacro: MemberMacro {
   struct CaseStyleTransformer {
     let memberName: String
 
     func transform(_ caseName: String) -> String {
+      guard let style else { return caseName }
+      return CaseConverter.format(caseName, to: style)
+    }
+
+    private var style: CaseStyle? {
       switch memberName {
-      case "verbatim":
-        return caseName
-      case "camelCase":
-        return CaseConverter.format(caseName, to: .camelCase)
-      case "pascalCase":
-        return CaseConverter.format(caseName, to: .pascalCase)
-      case "snakeCase":
-        return CaseConverter.format(caseName, to: .snakeCase)
-      case "screamingSnakeCase":
-        return CaseConverter.format(caseName, to: .screamingSnakeCase)
-      case "kebabCase":
-        return CaseConverter.format(caseName, to: .kebabCase)
-      default:
-        return caseName
+      case "verbatim": .verbatim
+      case "camelCase": .camelCase
+      case "pascalCase": .pascalCase
+      case "snakeCase": .snakeCase
+      case "screamingSnakeCase": .screamingSnakeCase
+      case "kebabCase": .kebabCase
+      default: nil
       }
     }
-  }
-
-  struct CaseConverter {
-    static func tokenize(_ input: String) -> [String] {
-      let splitAcronyms = input.replacingOccurrences(
-        of: "([A-Z]+)([A-Z][a-z])",
-        with: "$1 $2",
-        options: .regularExpression
-      )
-      let splitCamel = splitAcronyms.replacingOccurrences(
-        of: "([a-z0-9])([A-Z])",
-        with: "$1 $2",
-        options: .regularExpression
-      )
-
-      let separators = CharacterSet.alphanumerics.inverted
-      let components = splitCamel.components(separatedBy: separators)
-
-      return components
-        .filter { !$0.isEmpty }
-        .map { $0.lowercased() }
-    }
-
-    static func format(_ string: String, to style: Style) -> String {
-      let tokens = tokenize(string)
-      guard !tokens.isEmpty else { return string }
-
-      switch style {
-      case .camelCase:
-        let first = tokens[0]
-        let rest = tokens.dropFirst().map(\.capitalized)
-        return first + rest.joined()
-      case .pascalCase:
-        return tokens.map(\.capitalized).joined()
-      case .snakeCase:
-        return tokens.joined(separator: "_")
-      case .screamingSnakeCase:
-        return tokens.joined(separator: "_").uppercased()
-      case .kebabCase:
-        return tokens.joined(separator: "-")
-      }
-    }
-  }
-
-  enum Style {
-    case camelCase
-    case pascalCase
-    case snakeCase
-    case screamingSnakeCase
-    case kebabCase
   }
 
   public static func expansion<Declaration, Context>(
