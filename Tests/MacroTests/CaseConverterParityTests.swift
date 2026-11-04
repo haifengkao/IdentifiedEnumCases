@@ -74,9 +74,6 @@ final class CaseConverterParityTests: XCTestCase {
   }
 
   func testCompiledCaseIDRawValuesMatchCaseConverter() {
-    func rawValues<T: CaseIterable & RawRepresentable>(_: T.Type) -> [String] where T.RawValue == String {
-      T.allCases.map(\.rawValue)
-    }
     XCTAssertEqual(rawValues(SnakeEvent.CaseID.self), Self.caseNames.map { CaseConverter.format($0, to: .snakeCase) })
     XCTAssertEqual(
       rawValues(ScreamingSnakeEvent.CaseID.self),
@@ -85,14 +82,36 @@ final class CaseConverterParityTests: XCTestCase {
     XCTAssertEqual(rawValues(KebabEvent.CaseID.self), Self.caseNames.map { CaseConverter.format($0, to: .kebabCase) })
     XCTAssertEqual(rawValues(CamelEvent.CaseID.self), Self.caseNames.map { CaseConverter.format($0, to: .camelCase) })
     XCTAssertEqual(rawValues(PascalEvent.CaseID.self), Self.caseNames.map { CaseConverter.format($0, to: .pascalCase) })
-    XCTAssertEqual(rawValues(SnakeEvent.CaseID.self).prefix(5), [
-      "sample_entry",
-      "sample_sha256_entry",
-      "invalid_json_payload",
-      "open_via_url",
-      "same_document_url_changed",
+  }
+
+  /// Both sides above run the same `CaseConverter`, so they cannot catch a change to the
+  /// rules themselves. These pinned strings are the wire format that callers store.
+  func testCompiledCaseIDRawValuesArePinned() {
+    XCTAssertEqual(rawValues(SnakeEvent.CaseID.self), [
+      "sample_entry", "sample_sha256_entry", "invalid_json_payload", "open_via_url",
+      "same_document_url_changed", "nodes_sha256_mismatch", "url_loaded", "http2_upgrade",
+    ])
+    XCTAssertEqual(rawValues(ScreamingSnakeEvent.CaseID.self), [
+      "SAMPLE_ENTRY", "SAMPLE_SHA256_ENTRY", "INVALID_JSON_PAYLOAD", "OPEN_VIA_URL",
+      "SAME_DOCUMENT_URL_CHANGED", "NODES_SHA256_MISMATCH", "URL_LOADED", "HTTP2_UPGRADE",
+    ])
+    XCTAssertEqual(rawValues(KebabEvent.CaseID.self), [
+      "sample-entry", "sample-sha256-entry", "invalid-json-payload", "open-via-url",
+      "same-document-url-changed", "nodes-sha256-mismatch", "url-loaded", "http2-upgrade",
+    ])
+    XCTAssertEqual(rawValues(CamelEvent.CaseID.self), [
+      "sampleEntry", "sampleSha256Entry", "invalidJsonPayload", "openViaUrl",
+      "sameDocumentUrlChanged", "nodesSha256Mismatch", "urlLoaded", "http2Upgrade",
+    ])
+    XCTAssertEqual(rawValues(PascalEvent.CaseID.self), [
+      "SampleEntry", "SampleSha256Entry", "InvalidJsonPayload", "OpenViaUrl",
+      "SameDocumentUrlChanged", "NodesSha256Mismatch", "UrlLoaded", "Http2Upgrade",
     ])
   }
+}
+
+private func rawValues<T: CaseIterable & RawRepresentable>(_: T.Type) -> [String] where T.RawValue == String {
+  T.allCases.map(\.rawValue)
 }
 
 @IdentifiedEnumCases(caseStyle: .snakeCase)
