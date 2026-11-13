@@ -68,10 +68,19 @@ public struct IdentifiedEnumCasesMacro: MemberMacro {
       """
       let idAccessor = "\(modifier)var caseID: CaseID {\n  switch self {\n\(caseIds.map { "  case .\($0): .\($0)\n" }.joined())  }\n}"
 
-      return [
+      var members = [
         DeclSyntax(stringLiteral: enumID),
         DeclSyntax(stringLiteral: idAccessor)
       ]
+
+      // Spell the Codable witnesses out as members: for an enum with a raw type the compiler's
+      // synthesized enum Codable outranks CaseIDCodable's protocol-extension defaults.
+      if declaration.inheritsCaseIDCodable {
+        members.append("\(raw: modifier)init(from decoder: any Decoder) throws {\n  self = try Self.decodeCaseID(from: decoder)\n}")
+        members.append("\(raw: modifier)func encode(to encoder: any Encoder) throws {\n  try encodeCaseID(to: encoder)\n}")
+      }
+
+      return members
     }
 
   static func parseCaseStyle(from node: AttributeSyntax) -> CaseStyleTransformer {

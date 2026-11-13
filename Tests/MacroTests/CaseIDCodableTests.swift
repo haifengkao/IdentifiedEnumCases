@@ -13,6 +13,12 @@ private enum Mode: CaseIDCodable, Equatable {
   case readOnly
 }
 
+@IdentifiedEnumCases(caseStyle: .snakeCase)
+private enum Rank: Int, CaseIDCodable, Equatable {
+  case firstPlace
+  case runnerUp
+}
+
 @IdentifiedEnumCases(caseStyle: .screamingSnakeCase)
 private enum Intent {
   case openItem
@@ -31,6 +37,13 @@ final class CaseIDCodableTests: XCTestCase {
     let data = try JSONEncoder().encode([Color.lightBlue, .red])
     XCTAssertEqual(String(decoding: data, as: UTF8.self), #"["light_blue","red"]"#)
     XCTAssertEqual(String(decoding: try JSONEncoder().encode(Mode.readOnly), as: UTF8.self), #""read-only""#)
+  }
+
+  func testRawTypeEnumUsesCaseIDNotSynthesizedCodable() throws {
+    let data = try JSONEncoder().encode([Rank.firstPlace, .runnerUp])
+    XCTAssertEqual(String(decoding: data, as: UTF8.self), #"["first_place","runner_up"]"#)
+    XCTAssertEqual(try JSONDecoder().decode([Rank].self, from: data), [.firstPlace, .runnerUp])
+    XCTAssertThrowsError(try JSONDecoder().decode(Rank.self, from: Data("0".utf8)))
   }
 
   func testDecodesCaseIDRawValue() throws {

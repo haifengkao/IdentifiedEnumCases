@@ -153,6 +153,49 @@ final class MacroTests: XCTestCase {
     )
   }
 
+  func testCaseIDCodableGeneratesCodableMembers() {
+    assertMacroExpansion(
+          """
+          @IdentifiedEnumCases
+          public enum Rank: Int, CaseIDCodable {
+            case gold
+          }
+          """,
+          expandedSource:
+          """
+
+          public enum Rank: Int, CaseIDCodable {
+            case gold
+
+            public enum CaseID: String, Codable, Sendable, Hashable, CaseIterable, CustomStringConvertible {
+              case gold
+
+              public var description: String {
+                self.rawValue
+              }
+            }
+
+            public var caseID: CaseID {
+              switch self {
+              case .gold:
+                .gold
+              }
+            }
+
+            public init(from decoder: any Decoder) throws {
+              self = try Self.decodeCaseID(from: decoder)
+            }
+
+            public func encode(to encoder: any Encoder) throws {
+              try encodeCaseID(to: encoder)
+            }
+          }
+          """,
+          macros: testMacros,
+          indentationWidth: .spaces(2)
+    )
+  }
+
   func testCaseIDCodableRejectsAssociatedValues() {
     assertMacroExpansion(
           """

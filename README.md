@@ -159,6 +159,21 @@ try JSONEncoder().encode(Color.lightBlue) // "light_blue"
 
 Decoding an unknown string throws `DecodingError.dataCorrupted`.
 
+Declare `CaseIDCodable` on the enum itself, as above, not in an `extension`.
+The macro then writes `init(from:)` and `encode(to:)` as members, which is what
+makes it work for an enum with a raw type. For such an enum the compiler's
+synthesized `Codable` wins over the protocol's default implementation, and
+with `extension Rank: CaseIDCodable {}` you would silently get `{"firstPlace":{}}`:
+
+```swift
+@IdentifiedEnumCases(caseStyle: .snakeCase)
+enum Rank: Int, CaseIDCodable {
+  case firstPlace
+}
+
+try JSONEncoder().encode(Rank.firstPlace) // "first_place"
+```
+
 The generated `CaseID` is `Codable` too, also as its `rawValue` string, so a
 `CaseID` can be a stored property of a `Codable` type. This works for enums with
 associated values as well, since `CaseID` carries only the case name:

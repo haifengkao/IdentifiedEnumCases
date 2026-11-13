@@ -41,5 +41,5 @@
 /// generates `CaseID.sampleEntry.rawValue == "SAMPLE_ENTRY"`
 /// and `CaseID.extraValue.rawValue == "EXTRA_VALUE"`.
 
-@attached(member, names: named(CaseID), named(caseID))
+@attached(member, names: named(CaseID), named(caseID), named(init(from:)), named(encode(to:)))
 public macro IdentifiedEnumCases(caseStyle: CaseStyle = .verbatim) = #externalMacro(module: "IdentifiedEnumCasesMacro", type: "IdentifiedEnumCasesMacro")
