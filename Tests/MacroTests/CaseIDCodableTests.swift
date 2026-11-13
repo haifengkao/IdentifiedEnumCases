@@ -13,7 +13,20 @@ private enum Mode: CaseIDCodable, Equatable {
   case readOnly
 }
 
+@IdentifiedEnumCases(caseStyle: .screamingSnakeCase)
+private enum Intent {
+  case openItem
+  case fillField(text: String)
+}
+
 final class CaseIDCodableTests: XCTestCase {
+  func testGeneratedCaseIDIsCodable() throws {
+    let data = try JSONEncoder().encode([Intent.CaseID.openItem, .fillField])
+    XCTAssertEqual(String(decoding: data, as: UTF8.self), #"["OPEN_ITEM","FILL_FIELD"]"#)
+    XCTAssertEqual(try JSONDecoder().decode([Intent.CaseID].self, from: data), [.openItem, .fillField])
+    XCTAssertThrowsError(try JSONDecoder().decode(Intent.CaseID.self, from: Data(#""openItem""#.utf8)))
+  }
+
   func testEncodesCaseIDRawValue() throws {
     let data = try JSONEncoder().encode([Color.lightBlue, .red])
     XCTAssertEqual(String(decoding: data, as: UTF8.self), #"["light_blue","red"]"#)

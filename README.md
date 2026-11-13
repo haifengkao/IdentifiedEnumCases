@@ -60,7 +60,7 @@ enum Nightshade {
     }
   }
 
-  enum CaseID: String, Hashable, CaseIterable {
+  enum CaseID: String, Codable, Sendable, Hashable, CaseIterable {
     case potato, tomato, jalapeño
   }
 }
@@ -96,7 +96,7 @@ public enum AppRoute {
     case .user: .user
   }
 
-  public enum CaseID: String, Hashable, CaseIterable {
+  public enum CaseID: String, Codable, Sendable, Hashable, CaseIterable {
     case item
     case user
   }
@@ -158,6 +158,23 @@ try JSONEncoder().encode(Color.lightBlue) // "light_blue"
 ```
 
 Decoding an unknown string throws `DecodingError.dataCorrupted`.
+
+The generated `CaseID` is `Codable` too, also as its `rawValue` string, so a
+`CaseID` can be a stored property of a `Codable` type. This works for enums with
+associated values as well, since `CaseID` carries only the case name:
+
+```swift
+@IdentifiedEnumCases(caseStyle: .screamingSnakeCase)
+enum Intent {
+  case openItem
+  case fillField(text: String)
+}
+
+try JSONEncoder().encode(Intent.CaseID.fillField) // "FILL_FIELD"
+```
+
+Don't add your own `extension MyEnum.CaseID: Codable {}`: the macro already
+declares it, so the compiler reports a redundant conformance.
 
 `CaseIDCodable` writes only the case name, so it does not support associated
 values: `@IdentifiedEnumCases` reports a compile error when the enum declares

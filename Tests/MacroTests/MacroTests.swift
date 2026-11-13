@@ -35,7 +35,7 @@ final class MacroTests: XCTestCase {
               enum TomatoVariety {}
               enum EggplantVariety {}
             
-              enum CaseID: String, Hashable, CaseIterable, CustomStringConvertible {
+              enum CaseID: String, Codable, Sendable, Hashable, CaseIterable, CustomStringConvertible {
                 case potato
                 case tomato
                 case eggplant
@@ -86,7 +86,7 @@ final class MacroTests: XCTestCase {
             public enum TomatoVariety {}
             public enum EggplantVariety {}
           
-            public enum CaseID: String, Hashable, CaseIterable, CustomStringConvertible {
+            public enum CaseID: String, Codable, Sendable, Hashable, CaseIterable, CustomStringConvertible {
               case potato
               case tomato
               case eggplant
@@ -129,7 +129,7 @@ final class MacroTests: XCTestCase {
             case sampleEntry
             case extraValue(text: String)
 
-            enum CaseID: String, Hashable, CaseIterable, CustomStringConvertible {
+            enum CaseID: String, Codable, Sendable, Hashable, CaseIterable, CustomStringConvertible {
               case sampleEntry = "SAMPLE_ENTRY"
               case extraValue = "EXTRA_VALUE"
 
@@ -190,7 +190,7 @@ final class MacroTests: XCTestCase {
           enum Command {
             case sendMessage(text: String)
 
-            enum CaseID: String, Hashable, CaseIterable, CustomStringConvertible {
+            enum CaseID: String, Codable, Sendable, Hashable, CaseIterable, CustomStringConvertible {
               case sendMessage = "send_message"
 
               var description: String {
@@ -225,7 +225,7 @@ final class MacroTests: XCTestCase {
           enum Command {
             case sample_entry
 
-            enum CaseID: String, Hashable, CaseIterable, CustomStringConvertible {
+            enum CaseID: String, Codable, Sendable, Hashable, CaseIterable, CustomStringConvertible {
               case sample_entry
 
               var description: String {
@@ -260,7 +260,7 @@ final class MacroTests: XCTestCase {
           enum Command {
             case sample_entry
 
-            enum CaseID: String, Hashable, CaseIterable, CustomStringConvertible {
+            enum CaseID: String, Codable, Sendable, Hashable, CaseIterable, CustomStringConvertible {
               case sample_entry
 
               var description: String {
@@ -295,7 +295,7 @@ final class MacroTests: XCTestCase {
           enum Command {
             case sample_entry
 
-            enum CaseID: String, Hashable, CaseIterable, CustomStringConvertible {
+            enum CaseID: String, Codable, Sendable, Hashable, CaseIterable, CustomStringConvertible {
               case sample_entry = "sampleEntry"
 
               var description: String {
@@ -330,7 +330,7 @@ final class MacroTests: XCTestCase {
           enum Command {
             case sample_entry
 
-            enum CaseID: String, Hashable, CaseIterable, CustomStringConvertible {
+            enum CaseID: String, Codable, Sendable, Hashable, CaseIterable, CustomStringConvertible {
               case sample_entry = "SampleEntry"
 
               var description: String {
@@ -365,7 +365,7 @@ final class MacroTests: XCTestCase {
           enum Command {
             case sample_entry
 
-            enum CaseID: String, Hashable, CaseIterable, CustomStringConvertible {
+            enum CaseID: String, Codable, Sendable, Hashable, CaseIterable, CustomStringConvertible {
               case sample_entry = "sample-entry"
 
               var description: String {

@@ -52,7 +52,7 @@ final class CaseConverterParityTests: XCTestCase {
         enum Event {
         \(caseList)
 
-          enum CaseID: String, Hashable, CaseIterable, CustomStringConvertible {
+          enum CaseID: String, Codable, Sendable, Hashable, CaseIterable, CustomStringConvertible {
         \(caseIDLines.joined(separator: "\n"))
 
             var description: String {

@@ -59,7 +59,7 @@ public struct IdentifiedEnumCasesMacro: MemberMacro {
       let caseStyle = parseCaseStyle(from: node)
       let modifier = declaration.hasPublicModifier ? "public " : ""
       let enumID = """
-      \(modifier)enum CaseID: String, Hashable, CaseIterable, CustomStringConvertible {
+      \(modifier)enum CaseID: String, Codable, Sendable, Hashable, CaseIterable, CustomStringConvertible {
       \(caseIds.map { caseDeclaration(for: $0, using: caseStyle) }.joined())
         \(modifier)var description: String {
           self.rawValue
